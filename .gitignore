@@ -1,0 +1,6 @@
+﻿target/
+.idea/
+*.iml
+.SmartTomcat/
+.DS_Store
+Thumbs.db

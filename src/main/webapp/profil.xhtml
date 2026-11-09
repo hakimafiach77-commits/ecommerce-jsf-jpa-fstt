@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="/WEB-INF/templates/layout.xhtml">
+
+    <ui:define name="title">Mon Espace Internaute — AtlasTech Store</ui:define>
+
+    <ui:define name="content">
+
+        <ui:fragment rendered="#{not internauteBean.connecte}">
+            <div class="panel" style="text-align: center; padding: 48px;">
+                <h2 class="panel-title">Session non connectée</h2>
+                <p class="panel-sub">Veuillez vous identifier pour consulter votre profil et vos commandes.</p>
+                <h:link outcome="/connexion" value="Aller à la page de connexion" styleClass="btn btn-primary"/>
+            </div>
+        </ui:fragment>
+
+        <ui:fragment rendered="#{internauteBean.connecte}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h1 style="font-size: 1.6rem; font-weight: 800;">
+                        Bonjour, #{internauteBean.internauteConnecte.nomComplet}
+                    </h1>
+                    <span style="color: #64748b; font-size: 0.9rem;">
+                        Compte #{internauteBean.internauteConnecte.role} • Inscrit le
+                        <h:outputText value="#{internauteBean.internauteConnecte.dateInscription}">
+                            <f:convertDateTime pattern="dd/MM/yyyy"/>
+                        </h:outputText>
+                    </span>
+                </div>
+                <h:link outcome="/index" value="Parcourir la vitrine" styleClass="btn btn-outline"/>
+            </div>
+
+            <div class="two-col-layout">
+
+                <!-- Historique des Commandes -->
+                <div class="panel">
+                    <h2 class="panel-title">Historique de mes Commandes</h2>
+                    <p class="panel-sub">Suivi des commandes enregistrées en base de données MySQL</p>
+
+                    <ui:fragment rendered="#{empty internauteBean.mesCommandes}">
+                        <p style="color: #64748b; padding: 18px 0;">
+                            Vous n'avez pas encore passé de commande.
+                        </p>
+                    </ui:fragment>
+
+                    <h:form rendered="#{not empty internauteBean.mesCommandes}">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° Commande</th>
+                                    <th>Date</th>
+                                    <th>Articles</th>
+                                    <th>Total TTC</th>
+                                    <th>Statut</th>
+                                    <th>Reçu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ui:repeat value="#{internauteBean.mesCommandes}" var="cmd">
+                                    <tr>
+                                        <td><strong>#{cmd.numeroCommande}</strong></td>
+                                        <td>
+                                            <h:outputText value="#{cmd.dateCommande}">
+                                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
+                                            </h:outputText>
+                                        </td>
+                                        <td>#{cmd.nombreArticles}</td>
+                                        <td style="font-weight: 800; color: #2563eb;">
+                                            <h:outputText value="#{cmd.montantTotal}">
+                                                <f:convertNumber pattern="#,##0.00"/>
+                                            </h:outputText> DH
+                                        </td>
+                                        <td>
+                                            <span class="status-badge status-#{cmd.statut}">
+                                                #{cmd.statut}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <h:commandButton value="Voir reçu"
+                                                             action="#{internauteBean.voirFactureCommande(cmd)}"
+                                                             styleClass="btn btn-outline btn-sm"/>
+                                        </td>
+                                    </tr>
+                                </ui:repeat>
+                            </tbody>
+                        </table>
+                    </h:form>
+                </div>
+
+                <!-- Informations du Profil -->
+                <div class="panel">
+                    <h2 class="panel-title">Mes Coordonnées</h2>
+                    <p class="panel-sub">Mettez à jour vos informations de livraison</p>
+
+                    <h:form>
+                        <div class="form-group">
+                            <label class="form-label">E-mail (identifiant)</label>
+                            <input type="text" value="#{internauteBean.internauteConnecte.email}"
+                                   class="form-control" disabled="disabled" style="background: #f1f5f9;"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Nom *</label>
+                            <h:inputText value="#{internauteBean.internauteConnecte.nom}" styleClass="form-control" required="true"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Prénom *</label>
+                            <h:inputText value="#{internauteBean.internauteConnecte.prenom}" styleClass="form-control" required="true"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Téléphone</label>
+                            <h:inputText value="#{internauteBean.internauteConnecte.telephone}" styleClass="form-control"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Ville</label>
+                            <h:inputText value="#{internauteBean.internauteConnecte.ville}" styleClass="form-control"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Adresse</label>
+                            <h:inputText value="#{internauteBean.internauteConnecte.adresse}" styleClass="form-control"/>
+                        </div>
+
+                        <h:commandButton value="Enregistrer les modifications"
+                                         action="#{internauteBean.mettreAJourProfil}"
+                                         styleClass="btn btn-primary btn-block"/>
+                    </h:form>
+                </div>
+
+            </div>
+        </ui:fragment>
+
+    </ui:define>
+</ui:composition>

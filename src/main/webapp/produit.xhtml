@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="/WEB-INF/templates/layout.xhtml">
+
+    <f:metadata>
+        <f:viewParam name="id" value="#{vitrineBean.detailProduitId}"/>
+        <f:viewAction action="#{vitrineBean.chargerProduitDepuisParam}" onPostback="false"/>
+    </f:metadata>
+
+    <ui:define name="title">
+        #{vitrineBean.produitSelectionne != null ? vitrineBean.produitSelectionne.libelle : 'Détail Produit'} — AtlasTech Store
+    </ui:define>
+
+    <ui:define name="content">
+
+        <ui:fragment rendered="#{vitrineBean.produitSelectionne == null}">
+            <div class="panel" style="text-align: center; padding: 40px;">
+                <h2 class="panel-title">Produit non sélectionné</h2>
+                <p class="panel-sub">Veuillez choisir un article depuis la vitrine.</p>
+                <h:link outcome="/index" value="Retourner à la vitrine" styleClass="btn btn-primary"/>
+            </div>
+        </ui:fragment>
+
+        <ui:fragment rendered="#{vitrineBean.produitSelectionne != null}">
+            <div style="margin-bottom: 16px; font-size: 0.88rem; color: #64748b;">
+                <h:link outcome="/index" value="Vitrine"/> &gt;
+                <span>#{vitrineBean.produitSelectionne.categorie.nom}</span> &gt;
+                <strong style="color: #0f172a;">#{vitrineBean.produitSelectionne.libelle}</strong>
+            </div>
+
+            <div class="panel detail-layout">
+                <div style="border-radius: 12px; overflow: hidden; background: #0f172a;">
+                    <img src="#{vitrineBean.produitSelectionne.imageUrl}"
+                         alt="#{vitrineBean.produitSelectionne.libelle}"
+                         style="width: 100%; height: 300px; object-fit: cover; display: block;"/>
+                </div>
+
+                <div>
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                        <span class="status-badge status-EN_ATTENTE">#{vitrineBean.produitSelectionne.marque}</span>
+                        <span style="font-size: 0.82rem; color: #64748b;">
+                            Réf : #{vitrineBean.produitSelectionne.reference}
+                        </span>
+                    </div>
+
+                    <h1 style="font-size: 1.65rem; font-weight: 800; margin-bottom: 12px;">
+                        #{vitrineBean.produitSelectionne.libelle}
+                    </h1>
+
+                    <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px;">
+                        <span style="font-size: 1.85rem; font-weight: 800; color: #2563eb;">
+                            <h:outputText value="#{vitrineBean.produitSelectionne.prix}">
+                                <f:convertNumber pattern="#,##0.00"/>
+                            </h:outputText> DH
+                        </span>
+                        <ui:fragment rendered="#{vitrineBean.produitSelectionne.enPromotion}">
+                            <span class="price-old" style="font-size: 1.05rem;">
+                                <h:outputText value="#{vitrineBean.produitSelectionne.ancienPrix}">
+                                    <f:convertNumber pattern="#,##0.00"/>
+                                </h:outputText> DH
+                            </span>
+                            <span class="badge-promo" style="position: static;">
+                                Économisez #{vitrineBean.produitSelectionne.remisePourcentage}%
+                            </span>
+                        </ui:fragment>
+                    </div>
+
+                    <p style="color: #334155; font-size: 0.96rem; line-height: 1.65; margin-bottom: 20px;">
+                        #{vitrineBean.produitSelectionne.description}
+                    </p>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;">
+                        <ui:fragment rendered="#{vitrineBean.produitSelectionne.enStock}">
+                            <strong style="color: #059669;">En stock immédiat</strong> —
+                            <span>#{vitrineBean.produitSelectionne.quantiteStock} unité(s) disponible(s) dans notre entrepôt de Tanger.</span>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{not vitrineBean.produitSelectionne.enStock}">
+                            <strong style="color: #dc2626;">Produit temporairement en rupture de stock.</strong>
+                        </ui:fragment>
+                    </div>
+
+                    <h:form rendered="#{vitrineBean.produitSelectionne.enStock}">
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <div>
+                                <label class="form-label" style="margin-bottom: 4px;">Quantité</label>
+                                <h:inputText value="#{vitrineBean.quantiteDetail}"
+                                             styleClass="form-control"
+                                             style="width: 90px; text-align: center;">
+                                    <f:validateLongRange minimum="1" maximum="#{vitrineBean.produitSelectionne.quantiteStock}"/>
+                                </h:inputText>
+                            </div>
+                            <div style="flex: 1; padding-top: 20px;">
+                                <h:commandButton value="Ajouter au panier"
+                                                 action="#{panierBean.ajouterDepuisDetail}"
+                                                 styleClass="btn btn-primary btn-block"/>
+                            </div>
+                            <div style="padding-top: 20px;">
+                                <h:link outcome="/panier" value="Voir le panier" styleClass="btn btn-outline"/>
+                            </div>
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+
+            <!-- Produits Similaires -->
+            <ui:fragment rendered="#{not empty vitrineBean.produitsSimilaires}">
+                <h2 style="font-size: 1.25rem; font-weight: 800; margin: 28px 0 16px;">
+                    Articles similaires dans #{vitrineBean.produitSelectionne.categorie.nom}
+                </h2>
+                <h:form>
+                    <div class="product-grid">
+                        <ui:repeat value="#{vitrineBean.produitsSimilaires}" var="sim">
+                            <article class="product-card">
+                                <div class="product-thumb-wrap">
+                                    <img src="#{sim.imageUrl}" alt="#{sim.libelle}" class="product-thumb"/>
+                                </div>
+                                <div class="product-body">
+                                    <div class="product-meta">
+                                        <span>#{sim.marque}</span>
+                                        <span>Stock : #{sim.quantiteStock}</span>
+                                    </div>
+                                    <h3 class="product-title">#{sim.libelle}</h3>
+                                    <div class="price-row">
+                                        <span class="price-current">
+                                            <h:outputText value="#{sim.prix}">
+                                                <f:convertNumber pattern="#,##0.00"/>
+                                            </h:outputText> DH
+                                        </span>
+                                    </div>
+                                    <div class="card-actions">
+                                        <h:commandButton value="Voir" action="#{vitrineBean.voirDetail(sim.id)}" styleClass="btn btn-outline"/>
+                                        <h:commandButton value="Ajouter" action="#{panierBean.ajouterAuPanier(sim.id)}"
+                                                         disabled="#{not sim.enStock}" styleClass="btn btn-primary flex-1"/>
+                                    </div>
+                                </div>
+                            </article>
+                        </ui:repeat>
+                    </div>
+                </h:form>
+            </ui:fragment>
+        </ui:fragment>
+
+    </ui:define>
+</ui:composition>

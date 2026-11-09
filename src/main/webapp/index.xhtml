@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="/WEB-INF/templates/layout.xhtml">
+
+    <ui:define name="title">Vitrine High-Tech — AtlasTech Store (JSF &amp; JPA)</ui:define>
+
+    <ui:define name="content">
+
+        <!-- Bannière Héro -->
+        <section class="hero-banner">
+            <div class="hero-text">
+                <span class="hero-kicker">Catalogue Officiel 2026</span>
+                <h1 class="hero-title">Équipez vos projets d'ingénierie avec le meilleur du High-Tech</h1>
+                <p class="hero-desc">
+                    Découvrez notre sélection d'ordinateurs portables, smartphones 5G, périphériques mécaniques
+                    et équipements audio gérés en temps réel via JPA (EclipseLink) et MySQL.
+                </p>
+            </div>
+            <div class="hero-perks">
+                <div class="perk-box">
+                    <div class="perk-title">Livraison 24/48h</div>
+                    <div class="perk-sub">Tanger &amp; tout le Maroc</div>
+                </div>
+                <div class="perk-box">
+                    <div class="perk-title">Stock Temps Réel</div>
+                    <div class="perk-sub">Transactions JPA ACID</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filtres par Catégorie -->
+        <h:form>
+            <div class="category-bar">
+                <h:commandLink value="Tous les produits"
+                               action="#{vitrineBean.filtrerParCategorie(0)}"
+                               styleClass="cat-pill #{vitrineBean.categorieSelectionneeId == 0 ? 'cat-pill-active' : ''}"/>
+
+                <ui:repeat value="#{vitrineBean.categories}" var="cat">
+                    <h:commandLink value="#{cat.nom}"
+                                   action="#{vitrineBean.filtrerParCategorie(cat.id)}"
+                                   styleClass="cat-pill #{vitrineBean.categorieSelectionneeId == cat.id ? 'cat-pill-active' : ''}"/>
+                </ui:repeat>
+            </div>
+        </h:form>
+
+        <!-- Barre d'outils (Résultats + Tri + Réinitialisation) -->
+        <h:form>
+            <div class="catalog-toolbar">
+                <div>
+                    <span class="toolbar-title">#{vitrineBean.nomCategorieActive}</span>
+                    <span class="toolbar-count">(#{vitrineBean.produits.size()} article(s) trouvé(s))</span>
+                    <ui:fragment rendered="#{not empty vitrineBean.motCleRecherche}">
+                        <span class="status-badge status-EN_ATTENTE" style="margin-left: 10px;">
+                            Recherche : "#{vitrineBean.motCleRecherche}"
+                        </span>
+                        <h:commandLink value="Effacer les filtres"
+                                       action="#{vitrineBean.reinitialiserFiltres}"
+                                       style="margin-left: 10px; font-size: 0.85rem; font-weight: 700;"/>
+                    </ui:fragment>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="font-size: 0.86rem; font-weight: 600; color: #64748b;">Trier par :</label>
+                    <h:selectOneMenu value="#{vitrineBean.triSelectionne}"
+                                     styleClass="sort-select"
+                                     onchange="this.form.submit()">
+                        <f:selectItem itemValue="VEDETTE" itemLabel="En vedette"/>
+                        <f:selectItem itemValue="PRIX_ASC" itemLabel="Prix croissant"/>
+                        <f:selectItem itemValue="PRIX_DESC" itemLabel="Prix décroissant"/>
+                        <f:selectItem itemValue="NOUVEAUTES" itemLabel="Nouveautés"/>
+                    </h:selectOneMenu>
+                </div>
+            </div>
+        </h:form>
+
+        <!-- Message si aucun produit trouvé -->
+        <ui:fragment rendered="#{empty vitrineBean.produits}">
+            <div class="panel" style="text-align: center; padding: 48px 24px;">
+                <h3 class="panel-title">Aucun produit ne correspond à votre recherche</h3>
+                <p class="panel-sub">Essayez un autre mot-clé ou affichez l'ensemble du catalogue.</p>
+                <h:form>
+                    <h:commandButton value="Afficher tout le catalogue"
+                                     action="#{vitrineBean.reinitialiserFiltres}"
+                                     styleClass="btn btn-primary"/>
+                </h:form>
+            </div>
+        </ui:fragment>
+
+        <!-- Grille des Produits de la Vitrine -->
+        <h:form rendered="#{not empty vitrineBean.produits}">
+            <div class="product-grid">
+                <ui:repeat value="#{vitrineBean.produits}" var="prod">
+                    <article class="product-card">
+                        <div class="product-thumb-wrap">
+                            <img src="#{prod.imageUrl}" alt="#{prod.libelle}" class="product-thumb"/>
+                            <ui:fragment rendered="#{prod.enPromotion}">
+                                <span class="badge-promo">-#{prod.remisePourcentage}%</span>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{prod.enVedette}">
+                                <span class="badge-featured">Populaire</span>
+                            </ui:fragment>
+                        </div>
+
+                        <div class="product-body">
+                            <div class="product-meta">
+                                <span>#{prod.categorie != null ? prod.categorie.nom : 'Catalogue'}</span>
+                                <span>#{prod.marque}</span>
+                            </div>
+
+                            <h2 class="product-title">
+                                <h:commandLink value="#{prod.libelle}"
+                                               action="#{vitrineBean.voirDetail(prod.id)}"
+                                               style="color: inherit;"/>
+                            </h2>
+
+                            <p class="product-desc">#{prod.description}</p>
+
+                            <div class="price-row">
+                                <div>
+                                    <span class="price-current">
+                                        <h:outputText value="#{prod.prix}">
+                                            <f:convertNumber pattern="#,##0.00"/>
+                                        </h:outputText> DH
+                                    </span>
+                                    <ui:fragment rendered="#{prod.enPromotion}">
+                                        <span class="price-old">
+                                            <h:outputText value="#{prod.ancienPrix}">
+                                                <f:convertNumber pattern="#,##0.00"/>
+                                            </h:outputText> DH
+                                        </span>
+                                    </ui:fragment>
+                                </div>
+
+                                <ui:fragment rendered="#{prod.enStock}">
+                                    <span class="stock-pill stock-ok">Stock : #{prod.quantiteStock}</span>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{not prod.enStock}">
+                                    <span class="stock-pill stock-out">Rupture</span>
+                                </ui:fragment>
+                            </div>
+
+                            <div class="card-actions">
+                                <h:commandButton value="Détails"
+                                                 action="#{vitrineBean.voirDetail(prod.id)}"
+                                                 styleClass="btn btn-outline"/>
+
+                                <h:commandButton value="Ajouter au panier"
+                                                 action="#{panierBean.ajouterAuPanier(prod.id)}"
+                                                 disabled="#{not prod.enStock}"
+                                                 styleClass="btn btn-primary flex-1"/>
+                            </div>
+                        </div>
+                    </article>
+                </ui:repeat>
+            </div>
+        </h:form>
+
+    </ui:define>
+</ui:composition>

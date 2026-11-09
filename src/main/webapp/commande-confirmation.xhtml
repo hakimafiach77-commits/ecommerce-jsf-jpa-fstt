@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="/WEB-INF/templates/layout.xhtml">
+
+    <ui:define name="title">Confirmation de Commande — AtlasTech Store</ui:define>
+
+    <ui:define name="content">
+
+        <ui:fragment rendered="#{panierBean.derniereCommande == null}">
+            <div class="panel" style="text-align: center; padding: 44px;">
+                <h2 class="panel-title">Aucune commande sélectionnée</h2>
+                <h:link outcome="/index" value="Retour à la vitrine" styleClass="btn btn-primary"/>
+            </div>
+        </ui:fragment>
+
+        <ui:fragment rendered="#{panierBean.derniereCommande != null}">
+            <div class="panel" style="max-width: 860px; margin: 0 auto;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 18px; margin-bottom: 20px;">
+                    <div>
+                        <span class="status-badge status-#{panierBean.derniereCommande.statut}" style="margin-bottom: 8px;">
+                            Statut : #{panierBean.derniereCommande.statut}
+                        </span>
+                        <h1 style="font-size: 1.55rem; font-weight: 800;">
+                            Merci pour votre commande !
+                        </h1>
+                        <p style="color: #64748b; font-size: 0.9rem;">
+                            Référence : <strong style="color: #0f172a;">#{panierBean.derniereCommande.numeroCommande}</strong> •
+                            Enregistrée le
+                            <h:outputText value="#{panierBean.derniereCommande.dateCommande}">
+                                <f:convertDateTime pattern="dd/MM/yyyy à HH:mm"/>
+                            </h:outputText>
+                        </p>
+                    </div>
+                    <div>
+                        <button type="button" onclick="window.print();" class="btn btn-outline">
+                            Imprimer le reçu
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-grid" style="margin-bottom: 22px;">
+                    <div style="background: #f8fafc; padding: 14px; border-radius: 10px;">
+                        <div class="kpi-label">Client (Internaute)</div>
+                        <strong>#{panierBean.derniereCommande.internaute.nomComplet}</strong><br/>
+                        <span style="font-size: 0.86rem; color: #475569;">
+                            #{panierBean.derniereCommande.internaute.email}<br/>
+                            Tél : #{panierBean.derniereCommande.telephoneContact}
+                        </span>
+                    </div>
+                    <div style="background: #f8fafc; padding: 14px; border-radius: 10px;">
+                        <div class="kpi-label">Livraison &amp; Règlement</div>
+                        <strong>#{panierBean.derniereCommande.villeLivraison}</strong><br/>
+                        <span style="font-size: 0.86rem; color: #475569;">
+                            #{panierBean.derniereCommande.adresseLivraison}<br/>
+                            Mode : #{panierBean.derniereCommande.modePaiementLibelle}
+                        </span>
+                    </div>
+                </div>
+
+                <table class="data-table" style="margin-bottom: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Article commandé</th>
+                            <th>Prix Unitaire</th>
+                            <th>Quantité</th>
+                            <th>Sous-Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ui:repeat value="#{panierBean.derniereCommande.lignesCommande}" var="lc">
+                            <tr>
+                                <td><strong>#{lc.produit.libelle}</strong></td>
+                                <td>
+                                    <h:outputText value="#{lc.prixUnitaire}">
+                                        <f:convertNumber pattern="#,##0.00"/>
+                                    </h:outputText> DH
+                                </td>
+                                <td>#{lc.quantite}</td>
+                                <td style="font-weight: 700;">
+                                    <h:outputText value="#{lc.sousTotal}">
+                                        <f:convertNumber pattern="#,##0.00"/>
+                                    </h:outputText> DH
+                                </td>
+                            </tr>
+                        </ui:repeat>
+                    </tbody>
+                </table>
+
+                <div style="max-width: 340px; margin-left: auto;">
+                    <div class="summary-row">
+                        <span>Frais de livraison</span>
+                        <strong>
+                            <h:outputText value="#{panierBean.derniereCommande.fraisLivraison}">
+                                <f:convertNumber pattern="#,##0.00"/>
+                            </h:outputText> DH
+                        </strong>
+                    </div>
+                    <div class="summary-total">
+                        <span>Montant Total TTC</span>
+                        <span style="color: #2563eb;">
+                            <h:outputText value="#{panierBean.derniereCommande.montantTotal}">
+                                <f:convertNumber pattern="#,##0.00"/>
+                            </h:outputText> DH
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 26px;">
+                    <h:link outcome="/profil" value="Voir l'historique de mes commandes" styleClass="btn btn-primary"/>
+                    <h:link outcome="/index" value="Continuer mes achats" styleClass="btn btn-outline"/>
+                </div>
+            </div>
+        </ui:fragment>
+
+    </ui:define>
+</ui:composition>

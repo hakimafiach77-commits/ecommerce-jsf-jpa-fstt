@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      lang="fr">
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title><ui:insert name="title">AtlasTech Store — E-Commerce JSF &amp; JPA</ui:insert></title>
+    <link rel="stylesheet" href="#{request.contextPath}/resources/css/style.css"/>
+</h:head>
+<h:body>
+
+    <!-- Bandeau académique FSTT -->
+    <div class="top-bar">
+        <div class="container top-bar-inner">
+            <div>
+                <span class="top-badge">FST TANGER • LSI</span>
+                Module JEE — Application E-Commerce basée sur JSF 2.2, JPA (EclipseLink) &amp; MySQL
+            </div>
+            <div>
+                Livraison gratuite partout au Maroc dès 1 000 DH d'achat
+            </div>
+        </div>
+    </div>
+
+    <!-- En-tête principal -->
+    <header class="site-header">
+        <div class="container header-main">
+            <h:link outcome="/index" styleClass="brand-link">
+                <div class="brand-logo">AT</div>
+                <div>
+                    <div class="brand-title">AtlasTech Store</div>
+                    <span class="brand-sub">Vitrine High-Tech • Tanger</span>
+                </div>
+            </h:link>
+
+            <!-- Barre de recherche JSF -->
+            <h:form styleClass="search-form">
+                <h:inputText value="#{vitrineBean.motCleRecherche}"
+                             styleClass="search-input"
+                              converterMessage="Recherche invalide">
+                    <f:passThroughAttribute name="placeholder" value="Rechercher un produit, une marque (ex: MacBook, Sony, SSD)..."/>
+                </h:inputText>
+                <h:commandButton value="Rechercher" action="#{vitrineBean.rechercher}" styleClass="search-btn"/>
+            </h:form>
+
+            <!-- Actions Navigation (Vitrine, Panier, Internaute, Admin) -->
+            <h:form styleClass="nav-actions">
+                <h:link outcome="/index" styleClass="nav-btn">
+                    Vitrine
+                </h:link>
+
+                <h:link outcome="/panier" styleClass="nav-btn nav-btn-cart">
+                    Panier
+                    <span class="cart-count">#{panierBean.nombreArticles}</span>
+                </h:link>
+
+                <ui:fragment rendered="#{not internauteBean.connecte}">
+                    <h:link outcome="/connexion" styleClass="nav-btn">Connexion</h:link>
+                    <h:link outcome="/inscription" styleClass="nav-btn">Inscription</h:link>
+                </ui:fragment>
+
+                <ui:fragment rendered="#{internauteBean.connecte}">
+                    <h:link outcome="/profil" styleClass="nav-btn">
+                        #{internauteBean.internauteConnecte.prenom}
+                    </h:link>
+                    <ui:fragment rendered="#{internauteBean.admin}">
+                        <h:link outcome="/admin" styleClass="nav-btn nav-btn-admin">
+                            Administration
+                        </h:link>
+                    </ui:fragment>
+                    <h:commandLink value="Déconnexion" action="#{internauteBean.seDeconnecter}" styleClass="nav-btn"/>
+                </ui:fragment>
+            </h:form>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <div class="container">
+            <h:messages globalOnly="false"
+                        styleClass="jsf-messages"
+                        infoClass="msg-info"
+                        warnClass="msg-warn"
+                        errorClass="msg-error"/>
+
+            <ui:insert name="content"/>
+        </div>
+    </main>
+
+    <!-- Pied de page -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div>
+                <strong style="color: #ffffff;">AtlasTech Store</strong> — Université Abdelmalek Essaâdi • Faculté des Sciences et Techniques de Tanger (FSTT)
+            </div>
+            <div>
+                Département Génie Informatique • Cycle Ingénieur LSI • Encadré par Pr. Lotfi ELAACHAK
+            </div>
+        </div>
+    </footer>
+
+</h:body>
+</html>

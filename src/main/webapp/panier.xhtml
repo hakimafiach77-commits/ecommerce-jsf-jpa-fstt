@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="/WEB-INF/templates/layout.xhtml">
+
+    <ui:define name="title">Mon Panier — AtlasTech Store</ui:define>
+
+    <ui:define name="content">
+
+        <h1 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 18px;">
+            Gestion de votre Panier (#{panierBean.nombreArticles} article(s))
+        </h1>
+
+        <!-- Panier Vide -->
+        <ui:fragment rendered="#{panierBean.vide}">
+            <div class="panel" style="text-align: center; padding: 54px 24px;">
+                <h2 class="panel-title">Votre panier est actuellement vide</h2>
+                <p class="panel-sub">
+                    Parcourez notre vitrine High-Tech et ajoutez vos articles favoris pour passer commande.
+                </p>
+                <h:link outcome="/index" value="Découvrir la vitrine" styleClass="btn btn-primary"/>
+            </div>
+        </ui:fragment>
+
+        <!-- Panier contenant des articles -->
+        <ui:fragment rendered="#{not panierBean.vide}">
+            <div class="two-col-layout">
+
+                <!-- Colonne Gauche : Lignes du Panier -->
+                <div class="panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div>
+                            <ui:fragment rendered="#{panierBean.montantRestantLivraisonGratuite == 0}">
+                                <span class="status-badge status-VALIDEE">
+                                    Félicitations ! Vous bénéficiez de la livraison GRATUITE.
+                                </span>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{panierBean.montantRestantLivraisonGratuite &gt; 0}">
+                                <span class="status-badge status-EN_ATTENTE">
+                                    Plus que #{panierBean.montantRestantLivraisonGratuite} DH pour la livraison gratuite !
+                                </span>
+                            </ui:fragment>
+                        </div>
+
+                        <h:form>
+                            <h:commandButton value="Vider le panier"
+                                             action="#{panierBean.viderPanier}"
+                                             styleClass="btn btn-danger btn-sm"/>
+                        </h:form>
+                    </div>
+
+                    <h:form>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th>Prix Unitaire</th>
+                                    <th>Quantité</th>
+                                    <th>Sous-Total</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ui:repeat value="#{panierBean.lignes}" var="ligne">
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <img src="#{ligne.produit.imageUrl}"
+                                                     alt="#{ligne.produit.libelle}"
+                                                     style="width: 64px; height: 44px; object-fit: cover; border-radius: 6px;"/>
+                                                <div>
+                                                    <strong style="display: block; color: #0f172a;">
+                                                        #{ligne.produit.libelle}
+                                                    </strong>
+                                                    <span style="font-size: 0.78rem; color: #64748b;">
+                                                        #{ligne.produit.marque} • Stock dispo : #{ligne.produit.quantiteStock}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <h:outputText value="#{ligne.prixUnitaire}">
+                                                <f:convertNumber pattern="#,##0.00"/>
+                                            </h:outputText> DH
+                                        </td>
+                                        <td>
+                                            <div class="qty-controls">
+                                                <h:commandButton value="-"
+                                                                 action="#{panierBean.decrementer(ligne.produit.id)}"
+                                                                 styleClass="qty-btn"/>
+                                                <strong style="min-width: 22px; text-align: center;">
+                                                    #{ligne.quantite}
+                                                </strong>
+                                                <h:commandButton value="+"
+                                                                 action="#{panierBean.incrementer(ligne.produit.id)}"
+                                                                 styleClass="qty-btn"/>
+                                            </div>
+                                        </td>
+                                        <td style="font-weight: 800; color: #2563eb;">
+                                            <h:outputText value="#{ligne.sousTotal}">
+                                                <f:convertNumber pattern="#,##0.00"/>
+                                            </h:outputText> DH
+                                        </td>
+                                        <td>
+                                            <h:commandButton value="Retirer"
+                                                             action="#{panierBean.supprimerArticle(ligne.produit.id)}"
+                                                             styleClass="btn btn-danger btn-sm"/>
+                                        </td>
+                                    </tr>
+                                </ui:repeat>
+                            </tbody>
+                        </table>
+                    </h:form>
+
+                    <div style="margin-top: 18px;">
+                        <h:link outcome="/index" value="Continuer mes achats" styleClass="btn btn-outline"/>
+                    </div>
+                </div>
+
+                <!-- Colonne Droite : Récapitulatif & Validation de Commande -->
+                <div class="panel">
+                    <h2 class="panel-title">Récapitulatif Financier</h2>
+                    <p class="panel-sub">Calcul automatique incluant la TVA (20%)</p>
+
+                    <div class="summary-row">
+                        <span>Total HT</span>
+                        <strong>
+                            <h:outputText value="#{panierBean.totalHT}">
+                                <f:convertNumber pattern="#,##0.00"/>
+                            </h:outputText> DH
+                        </strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>TVA (20%)</span>
+                        <strong>
+                            <h:outputText value="#{panierBean.montantTVA}">
+                                <f:convertNumber pattern="#,##0.00"/>
+                            </h:outputText> DH
+                        </strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Livraison</span>
+                        <strong>
+                            <ui:fragment rendered="#{panierBean.fraisLivraison == 0}">
+                                <span style="color: #059669;">GRATUITE</span>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{panierBean.fraisLivraison &gt; 0}">
+                                <h:outputText value="#{panierBean.fraisLivraison}">
+                                    <f:convertNumber pattern="#,##0.00"/>
+                                </h:outputText> DH
+                            </ui:fragment>
+                        </strong>
+                    </div>
+
+                    <div class="summary-total">
+                        <span>Total TTC</span>
+                        <span style="color: #2563eb;">
+                            <h:outputText value="#{panierBean.totalGeneral}">
+                                <f:convertNumber pattern="#,##0.00"/>
+                            </h:outputText> DH
+                        </span>
+                    </div>
+
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 18px 0;"/>
+
+                    <!-- Si non connecté : inviter à se connecter -->
+                    <ui:fragment rendered="#{not internauteBean.connecte}">
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                            <strong style="display: block; color: #1e3a8a; margin-bottom: 4px;">
+                                Authentification requise
+                            </strong>
+                            <span style="font-size: 0.85rem; color: #334155;">
+                                Connectez-vous pour synchroniser votre panier en base MySQL et finaliser votre commande.
+                            </span>
+                        </div>
+                        <h:link outcome="/connexion" value="Se connecter et commander" styleClass="btn btn-primary btn-block"/>
+                    </ui:fragment>
+
+                    <!-- Si connecté : Formulaire de validation de commande -->
+                    <ui:fragment rendered="#{internauteBean.connecte}">
+                        <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 12px;">
+                            Livraison &amp; Paiement
+                        </h3>
+                        <h:form>
+                            <div class="form-group">
+                                <label class="form-label">Adresse de livraison *</label>
+                                <h:inputText value="#{panierBean.adresseLivraison}" styleClass="form-control" required="true"
+                                             requiredMessage="Veuillez indiquer l'adresse de livraison."/>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Ville *</label>
+                                <h:inputText value="#{panierBean.villeLivraison}" styleClass="form-control" required="true"
+                                             requiredMessage="Veuillez indiquer la ville de livraison."/>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Téléphone de contact</label>
+                                <h:inputText value="#{panierBean.telephoneContact}" styleClass="form-control"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Mode de paiement</label>
+                                <h:selectOneMenu value="#{panierBean.modePaiement}" styleClass="form-control">
+                                    <f:selectItem itemValue="PAIEMENT_LIVRAISON" itemLabel="Paiement à la livraison (Espèces)"/>
+                                    <f:selectItem itemValue="CARTE_BANCAIRE" itemLabel="Carte Bancaire (CMI / Visa / Mastercard)"/>
+                                    <f:selectItem itemValue="VIREMENT" itemLabel="Virement Bancaire"/>
+                                </h:selectOneMenu>
+                            </div>
+
+                            <h:commandButton value="Confirmer la commande"
+                                             action="#{panierBean.validerCommande}"
+                                             styleClass="btn btn-accent btn-block"
+                                             style="padding: 12px; font-size: 0.96rem;"/>
+                        </h:form>
+                    </ui:fragment>
+                </div>
+
+            </div>
+        </ui:fragment>
+
+    </ui:define>
+</ui:composition>
